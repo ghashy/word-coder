@@ -1,0 +1,94 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
+
+:root {
+  --dark: #222831;
+  --middle: #393e46;
+  --accent: #00adb5;
+  --light: #eeeeee;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  background-color: var(--light);
+  color: var(--dark);
+}
+
+.header {
+  padding: 0 20px;
+  display: flex;
+  justify-content: center;
+  max-width: fit-content;
+  margin: 3rem auto;
+}
+
+h1 {
+  max-width: fit-content;
+}
+
+.container {
+  width: 70%;
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.input_section {
+  font-size: 1.25rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#text_input {
+  padding: 5px;
+  border: 2px solid var(--accent);
+  outline: none;
+  font-size: 16px;
+  color: #333;
+  border-radius: 4px;
+}
+
+#text_input:focus {
+  box-shadow: inset 0 0 2px 2px rgba(152, 152, 152, 0.1);
+}
+
+button {
+  padding: 5px 15px;
+  border: none;
+  background-color: var(--middle);
+  color: var(--accent);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 1.25rem;
+}
+
+button:hover {
+  filter: brightness(120%);
+}
+
+#response_ul {
+  display: flex;
+  flex-wrap: wrap;
+  /* flex-direction: column; */
+  justify-content: space-between;
+  max-width: 1000px;
+  gap: 10px;
+  margin-top: 3rem;
+  color: var(--middle);
+  /* max-height: 100vh; */
+}
+
+li {
+  list-style: none;
+}
