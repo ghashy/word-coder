@@ -22,25 +22,31 @@ struct AppState {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
+    let subscriber = tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .with_level(true)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber)
+        .expect("Failed to setup tracing subscriber");
     let dictionary = generator::read_file_to_string_utf8("russian-POS.txt")?;
     let state = AppState {
         dictionary: Arc::new(dictionary),
     };
 
-    let cors = CorsLayer::new()
-        // allow `GET` and `POST` when accessing the resource
-        .allow_methods([Method::GET, Method::POST])
-        // allow requests from any origin
-        .allow_origin(Any);
+    // let cors = CorsLayer::new()
+    //     // allow `GET` and `POST` when accessing the resource
+    //     .allow_methods([Method::GET, Method::POST])
+    //     // allow requests from any origin
+    //     .allow_origin(Any);
 
     let app = Router::new()
         .route("/api/:number", routing::post(get_words))
-        .layer(cors)
+        // .layer(cors)
         .with_state(state);
 
     let server = axum::Server::bind(&std::net::SocketAddr::V4(
-        // SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 9090),
-        SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 9090),
+        SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 9090),
+        // SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 9090),
     ))
     .serve(app.into_make_service());
     let _ = server.await;
