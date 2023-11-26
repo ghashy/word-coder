@@ -20,9 +20,27 @@ struct AppState {
     dictionary: Arc<String>,
 }
 
+enum Env {
+    Dev,
+    Prod,
+}
+
+impl Env {
+    fn init() -> Self {
+        match std::env::var("APP_ENVIRONMENT") {
+            Ok(s) => match s.as_str() {
+                "production" => Env::Prod,
+                _ => Env::Dev,
+            },
+            Err(_) => Env::Dev,
+        }
+    }
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
     let subscriber = tracing_subscriber::fmt()
+        .with_timer(tracing_subscriber::fmt::time::ChronoLocal::default())
         .with_max_level(tracing::Level::INFO)
         .with_level(true)
         .finish();
@@ -32,28 +50,42 @@ async fn main() -> Result<()> {
     let state = AppState {
         dictionary: Arc::new(dictionary),
     };
+    let env = Env::init();
+    let app = get_app(state, &env);
 
-    // let cors = CorsLayer::new()
-    //     // allow `GET` and `POST` when accessing the resource
-    //     .allow_methods([Method::GET, Method::POST])
-    //     // allow requests from any origin
-    //     .allow_origin(Any);
+    let sock_addr = &std::net::SocketAddr::V4(match env {
+        Env::Dev => SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 9090),
+        Env::Prod => SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 9090),
+    });
 
-    let app = Router::new()
-        .route("/api/:number", routing::post(get_words))
-        // .layer(cors)
-        .with_state(state);
-
-    let server = axum::Server::bind(&std::net::SocketAddr::V4(
-        SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 9090),
-        // SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 9090),
-    ))
-    .serve(app.into_make_service());
+    let server = axum::Server::bind(sock_addr).serve(app.into_make_service());
     let _ = server.await;
 
     tracing::info!("Stopping..");
 
     Ok(())
+}
+
+fn get_app(state: AppState, env: &Env) -> Router {
+    let router = Router::new()
+        .route("/api/:number", routing::post(get_words))
+        .with_state(state);
+    match env {
+        Env::Dev => {
+            tracing::info!("Running in dev env");
+            let cors = CorsLayer::new()
+                // allow `GET` and `POST` when accessing the resource
+                .allow_methods([Method::GET, Method::POST])
+                // allow requests from any origin
+                .allow_origin(Any);
+
+            router.layer(cors)
+        }
+        Env::Prod => {
+            tracing::info!("Running in prod env");
+            router
+        }
+    }
 }
 
 async fn get_words(

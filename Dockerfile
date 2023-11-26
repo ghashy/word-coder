@@ -23,6 +23,7 @@ WORKDIR /app
 COPY --from=builder /app/target/release/word-coder word-coder
 # We need the configuration file at runtime!
 COPY russian-POS.txt russian-POS.txt
+ENV APP_ENVIRONMENT production
 EXPOSE 9090
 
 ENTRYPOINT ["/app/word-coder"]
